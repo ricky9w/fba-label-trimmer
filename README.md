@@ -50,6 +50,10 @@ You can deploy this application to Vercel with one click:
 
 All files are processed locally in your browser. No data is sent to the server.
 
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
 ## Contributing
 
 Issues and Pull Requests are welcome!
