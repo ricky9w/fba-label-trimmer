@@ -141,7 +141,7 @@ const PDFCropper = () => {
                 onChange={(e) => setAddOriginText(e.target.checked)}
                 className="form-checkbox h-4 w-4"
               />
-              <span className="text-sm text-gray-600">添加"Made In China"原产国标识</span>
+              <span className="text-sm text-gray-600">添加&quot;Made In China&quot;原产国标识</span>
             </label>
           </div>
 
