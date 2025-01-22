@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from "react";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, StandardFonts } from "pdf-lib";
 import { Upload } from "lucide-react";
 import {
   Card,
@@ -20,14 +20,16 @@ const PDFCropper = () => {
   const [currentFile, setCurrentFile] = useState<string>("");
   const [totalFiles, setTotalFiles] = useState(0);
   const [processedFiles, setProcessedFiles] = useState(0);
+  const [addOriginText, setAddOriginText] = useState(false);
 
-  const cropPDF = async (file: File) => {
+  const processPDF = async (file: File) => {
     try {
       setCurrentFile(file.name);
       const arrayBuffer = await file.arrayBuffer();
       setProgress(40);
       
       const pdfDoc = await PDFDocument.load(arrayBuffer);
+      const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
       setProgress(50);
 
       const pages = pdfDoc.getPages();
@@ -37,6 +39,18 @@ const PDFCropper = () => {
         const { width, height } = page.getSize();
         const newHeight = height * (4 / 6);
         page.setCropBox(0, height - newHeight, width, newHeight);
+        
+        if (addOriginText) {
+          const text = "Made In China";
+          const fontSize = 8;
+          const textWidth = helveticaFont.widthOfTextAtSize(text, fontSize);
+          page.drawText(text, {
+            x: (width - textWidth) / 2,
+            y: fontSize * 2 + height - newHeight,
+            size: fontSize,
+            font: helveticaFont
+          });
+        }
         
         setProgress(50 + Math.floor((index + 1) / totalPages * 30));
       });
@@ -73,7 +87,7 @@ const PDFCropper = () => {
     setProcessedFiles(0);
 
     for (const file of pdfFiles) {
-      await cropPDF(file);
+      await processPDF(file);
       setProcessedFiles(prev => prev + 1);
       setProgress(0);
     }
@@ -119,6 +133,18 @@ const PDFCropper = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-4">
+            <label className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                checked={addOriginText}
+                onChange={(e) => setAddOriginText(e.target.checked)}
+                className="form-checkbox h-4 w-4"
+              />
+              <span className="text-sm text-gray-600">添加"Made In China"原产国标识</span>
+            </label>
+          </div>
+
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center ${
               isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
