@@ -17,12 +17,13 @@ const PDFCropper = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [progress, setProgress] = useState(0);
   const [processing, setProcessing] = useState(false);
+  const [currentFile, setCurrentFile] = useState<string>("");
+  const [totalFiles, setTotalFiles] = useState(0);
+  const [processedFiles, setProcessedFiles] = useState(0);
 
   const cropPDF = async (file: File) => {
     try {
-      setProcessing(true);
-      setProgress(20);
-
+      setCurrentFile(file.name);
       const arrayBuffer = await file.arrayBuffer();
       setProgress(40);
       
@@ -54,16 +55,34 @@ const PDFCropper = () => {
       URL.revokeObjectURL(url);
 
       setProgress(100);
-      setTimeout(() => {
-        setProcessing(false);
-        setProgress(0);
-      }, 1000);
     } catch (error) {
       console.error('Error cropping PDF:', error);
-    } finally {
-      setProcessing(false);
+    }
+  };
+
+  const processFiles = async (files: File[]) => {
+    const pdfFiles = Array.from(files).filter(file => file.type === 'application/pdf');
+    
+    if (pdfFiles.length === 0) {
+      alert('请上传有效的PDF文件。');
+      return;
+    }
+
+    setProcessing(true);
+    setTotalFiles(pdfFiles.length);
+    setProcessedFiles(0);
+
+    for (const file of pdfFiles) {
+      await cropPDF(file);
+      setProcessedFiles(prev => prev + 1);
       setProgress(0);
     }
+
+    setProcessing(false);
+    setCurrentFile("");
+    setProgress(0);
+    setTotalFiles(0);
+    setProcessedFiles(0);
   };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
@@ -79,21 +98,14 @@ const PDFCropper = () => {
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
-
-    const file = e.dataTransfer.files[0];
-    if (file && file.type === 'application/pdf') {
-      await cropPDF(file);
-    } else {
-      alert('Please upload a valid PDF file.');
-    }
+    const files = e.dataTransfer.files;
+    await processFiles(Array.from(files));
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      await cropPDF(file);
-    } else {
-      alert('Please upload a valid PDF file.');
+    const files = e.target.files;
+    if (files) {
+      await processFiles(Array.from(files));
     }
   };
 
@@ -118,7 +130,7 @@ const PDFCropper = () => {
             <div className="flex flex-col items-center justify-center">
               <Upload className="w-12 h-12 text-gray-400 mb-4" />
               <p className="text-gray-600 mb-2">
-                拖拽 PDF 文件到这里, 或者
+                拖拽一个或多个 PDF 文件到这里, 或者
               </p>
               <Button
                 variant="outline"
@@ -132,6 +144,7 @@ const PDFCropper = () => {
                 id="file-upload"
                 className="hidden"
                 accept=".pdf"
+                multiple
                 onChange={handleFileSelect}
               />
             </div>
@@ -141,7 +154,7 @@ const PDFCropper = () => {
             <div className="mt-4">
               <Progress value={progress} className="w-full" />
               <p className="text-sm text-gray-500 mt-2 text-center">
-                正在处理...
+                正在处理: {currentFile} ({processedFiles + 1}/{totalFiles})
               </p>
             </div>
           )}
