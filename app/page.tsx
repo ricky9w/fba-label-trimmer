@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from "react";
-import { PDFDocument, StandardFonts } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { Upload } from "lucide-react";
 import {
   Card,
@@ -21,6 +21,7 @@ const PDFCropper = () => {
   const [totalFiles, setTotalFiles] = useState(0);
   const [processedFiles, setProcessedFiles] = useState(0);
   const [addOriginText, setAddOriginText] = useState(false);
+  const [removeTextArea, setRemoveTextArea] = useState(false);
 
   const processPDF = async (file: File) => {
     try {
@@ -39,6 +40,23 @@ const PDFCropper = () => {
         const { width, height } = page.getSize();
         const newHeight = height * (4 / 6);
         page.setCropBox(0, height - newHeight, width, newHeight);
+
+        console.log(page.getSize());
+        
+        if (removeTextArea) {
+          const rectX = 30;
+          const rectWidth = 124;
+          const rectY = 376;
+          const rectHeight = 8;
+
+          page.drawRectangle({
+            x: rectX,
+            y: rectY,
+            width: rectWidth,
+            height: rectHeight,
+            color: rgb(1, 1, 1),
+          });
+        }
         
         if (addOriginText) {
           const text = "Made In China";
@@ -142,6 +160,15 @@ const PDFCropper = () => {
                 className="form-checkbox h-4 w-4"
               />
               <span className="text-sm text-gray-600">添加&quot;Made In China&quot;原产国标识</span>
+            </label>
+            <label className="flex items-center space-x-2 mt-2">
+              <input
+                type="checkbox"
+                checked={removeTextArea}
+                onChange={(e) => setRemoveTextArea(e.target.checked)}
+                className="form-checkbox h-4 w-4"
+              />
+              <span className="text-sm text-gray-600">移除公司抬头</span>
             </label>
           </div>
 
