@@ -42,7 +42,7 @@ const PDFCropper = () => {
         
         if (addOriginText) {
           const text = "Made In China";
-          const fontSize = 8;
+          const fontSize = 12;
           const textWidth = helveticaFont.widthOfTextAtSize(text, fontSize);
           page.drawText(text, {
             x: (width - textWidth) / 2,
